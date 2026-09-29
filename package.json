@@ -1,0 +1,28 @@
+{
+  "name": "manifold-restorer",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "深海载人舱应急供氧歧管可拆模块接头朝向复原（纯本地求解）",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "smoke": "tsx scripts/smoke.ts"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "tsx": "^4.19.2",
+    "typescript": "~5.6.3",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.5"
+  }
+}

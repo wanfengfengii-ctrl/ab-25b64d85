@@ -1,0 +1,31 @@
+services:
+  # 带健康检查的前端服务，宿主机端口由 HOST_PORT 配置（默认 8080）
+  web:
+    build:
+      context: .
+      target: runtime
+    image: manifold-restorer-web:latest
+    ports:
+      - "${HOST_PORT:-8080}:80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  # 一次性校验服务：测试 → 生产构建 → 健康 HTTP 探测 → 典型复原冒烟，按退出码结束
+  verify:
+    build:
+      context: .
+      target: build
+    image: manifold-restorer-verify:latest
+    entrypoint: ["sh"]
+    command: ["/app/scripts/verify.sh"]
+    environment:
+      HEALTH_URL: http://web/healthz
+    depends_on:
+      web:
+        condition: service_healthy
+    restart: "no"
