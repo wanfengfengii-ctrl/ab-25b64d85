@@ -1,0 +1,43 @@
+# docker-compose.yml
+#
+# 服务：
+#   web     常驻前端（生产静态产物 + /healthz），宿主机端口可通过
+#           MANIFOLD_HOST_PORT（默认 8080）配置发布。
+#   verify  一次性门禁服务：代码测试 → 生产构建 → 健康 HTTP 探测 →
+#           典型歧管复原冒烟，全部通过后按退出码 0 结束，否则非零。
+#
+# 常用：
+#   MANIFOLD_HOST_PORT=9090 docker compose up -d --build web
+#   docker compose run --build verify      # 或：docker compose up --build verify（exit 0 即通过）
+
+services:
+  web:
+    build:
+      context: .
+      target: runtime
+    image: manifold-restorer:latest
+    environment:
+      PORT: "8080"
+    ports:
+      # 宿主机端口可配置；容器内固定 8080
+      - "${MANIFOLD_HOST_PORT:-8080}:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "scripts/healthcheck.mjs", "http://127.0.0.1:8080", "5", "500"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 4s
+
+  verify:
+    build:
+      context: .
+      target: verify
+    image: manifold-restorer:verify
+    depends_on:
+      web:
+        condition: service_healthy
+    environment:
+      VERIFY_TARGET_URL: "http://web:8080"
+    command: ["sh", "scripts/verify-pipeline.sh"]
+    restart: "no"
